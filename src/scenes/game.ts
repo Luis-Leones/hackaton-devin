@@ -1,9 +1,9 @@
 import { GAME, PHYSICS, COLORS, PLAYER } from "../config";
-import { level01 } from "../levels/level01";
-import { spawnPlatform, spawnBackgroundSilhouettes } from "../entities/platform";
-import { spawnCoin, spawnPowerUp } from "../entities/collectible";
+import { AUDIO, AUDIO_VOLUME } from "../assets/audio";
+import { setupInfiniteMapBackground } from "../entities/background";
+import { setupInfiniteWorldStream } from "../systems/worldStream";
 import { spawnPlayer, handlePlayerInput, tryJump } from "../entities/player";
-import { setupCameraFollow } from "../systems/camera";
+import { setupAutoScrollCamera } from "../systems/camera";
 import { setupCollisions } from "../systems/collision";
 import {
   createPowerUpState,
@@ -24,13 +24,8 @@ export function registerGameScene() {
     setBackground(...COLORS.sky);
     camPos(vec2(0, 0));
 
-    add([
-      rect(GAME.width, GAME.height),
-      pos(0, 0),
-      color(...COLORS.sky),
-      fixed(),
-      z(-30),
-    ]);
+    setupInfiniteMapBackground();
+    setupInfiniteWorldStream();
 
     add([
       rect(GAME.width - 4, GAME.height - 4, { fill: false }),
@@ -45,30 +40,38 @@ export function registerGameScene() {
     let gameOver = false;
     let runTime = 0;
 
-    spawnBackgroundSilhouettes();
+    const chaseMusic = play(AUDIO.persecucion, {
+      loop: true,
+      volume: AUDIO_VOLUME.persecucion,
+    });
 
-    for (const p of level01.platforms) {
-      spawnPlatform(p);
-    }
-    for (const c of level01.coins) {
-      spawnCoin(c);
-    }
-    for (const pu of level01.powerUps) {
-      spawnPowerUp(pu);
-    }
+    onSceneLeave(() => {
+      chaseMusic.stop();
+    });
 
     const player = spawnPlayer(PLAYER.startSurfaceY);
 
-    add([
-      rect(GAME.worldWidth + 400, 50),
-      pos(-200, GAME.floorY),
+    function endRun(message: string) {
+      if (gameOver) return;
+      gameOver = true;
+      chaseMusic.stop();
+      gameOverLabel.text = message;
+    }
+
+    const killzone = add([
+      rect(GAME.width + 400, 80),
+      pos(-200, GAME.deathY - 20),
       anchor("topleft"),
       area(),
       body({ isStatic: true }),
       opacity(0),
-      "platform",
       "killzone",
+      fixed(),
     ]);
+
+    onUpdate(() => {
+      killzone.pos.x = camPos().x - 200;
+    });
 
     const hudCoins = add([
       text("Monedas: 0", { size: 20 }),
@@ -89,7 +92,7 @@ export function registerGameScene() {
     ]);
 
     add([
-      text("→ avanzar | Espacio saltar | R reiniciar", { size: 13 }),
+      text("Flechas mover | Espacio saltar | R reiniciar", { size: 13 }),
       pos(16, GAME.height - 28),
       color(40, 45, 58),
       fixed(),
@@ -112,7 +115,14 @@ export function registerGameScene() {
 
     camPos(vec2(Math.max(0, player.pos.x - GAME.width * 0.32), 0));
 
-    setupCameraFollow(player);
+    setupAutoScrollCamera(
+      player,
+      () => getScrollSpeed(powerState, runTime),
+      () => {
+        if (gameOver || runTime < 1.5) return;
+        endRun("Te quedaste atrás — pulsa R");
+      },
+    );
     setupCollisions(player, powerState, () => {
       coinCount++;
       updateHud();
@@ -129,32 +139,32 @@ export function registerGameScene() {
       go("game");
     });
 
+    player.onCollide("killzone", () => {
+      endRun("Caíste al vacío — pulsa R");
+    });
+
+    player.onFallOff(() => {
+      if (gameOver) return;
+      wait(0.35, () => {
+        if (gameOver || player.isGrounded()) return;
+        if (player.pos.y >= GAME.deathY - 48) {
+          endRun("Caíste al vacío — pulsa R");
+        }
+      });
+    });
+
     onUpdate(() => {
       if (gameOver) return;
 
       runTime += dt();
 
-      const scroll =
-        runTime > 2.5 ? getScrollSpeed(powerState) * dt() : 0;
-
-      if (scroll > 0) {
-        scrollWorld(scroll);
-        if (player.isGrounded()) {
-          player.pos.x -= scroll;
-        }
-      }
+      const scroll = getScrollSpeed(powerState, runTime) * dt();
+      scrollWorld(scroll);
 
       handlePlayerInput(player, getMaxForwardSpeed(powerState));
 
-      if (runTime > 2 && player.pos.y > GAME.floorY) {
-        gameOver = true;
-        gameOverLabel.text = "Game Over — pulsa R";
-      }
-
-      const screenX = player.pos.x - camPos().x;
-      if (runTime > 3 && screenX < -100) {
-        gameOver = true;
-        gameOverLabel.text = "Te quedaste atrás — pulsa R";
+      if (!player.isGrounded() && player.pos.y >= GAME.deathY) {
+        endRun("Caíste al vacío — pulsa R");
       }
     });
   });

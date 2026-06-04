@@ -17,6 +17,8 @@ export function setupCollisions(
   });
 
   player.onCollide("powerup", (pu: GameObj) => {
+    if (pu.collected) return;
+    pu.collected = true;
     const type = pu.powerType as "speed" | "grow" | "smash";
     destroy(pu);
     applyPowerUp(type, player, state, onHudUpdate);

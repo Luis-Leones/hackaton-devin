@@ -1,17 +1,25 @@
 import type { GameObj } from "kaboom";
 import { CAMERA, GAME } from "../config";
 
-export function setupCameraFollow(player: GameObj) {
+export function setupAutoScrollCamera(
+  player: GameObj,
+  getScrollSpeed: () => number,
+  onFallBehind: () => void,
+) {
   const offsetX = GAME.width * CAMERA.playerScreenRatio;
+  const fallBehindMargin = 130;
 
   onUpdate(() => {
-    const targetX = clamp(
-      player.pos.x - offsetX,
-      0,
-      GAME.worldWidth - GAME.width,
-    );
+    const scroll = getScrollSpeed() * dt();
+    const autoCamX = camPos().x + scroll;
+    const followX = player.pos.x - offsetX;
 
-    const nextX = lerp(camPos().x, targetX, CAMERA.lerp * dt());
-    camPos(vec2(nextX, 0));
+    const targetX = Math.max(0, autoCamX, followX);
+
+    camPos(vec2(targetX, 0));
+
+    if (player.pos.x < camPos().x - fallBehindMargin) {
+      onFallBehind();
+    }
   });
 }

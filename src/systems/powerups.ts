@@ -1,5 +1,6 @@
 import type { PowerUpType } from "../levels/level01";
 import { PHYSICS, PLAYER, POWERUP } from "../config";
+import { CHARACTER_SCALE } from "../assets/characterSprites";
 import type { PlayerObj } from "../entities/player";
 
 export type PowerUpState = {
@@ -18,8 +19,16 @@ export function createPowerUpState(): PowerUpState {
   };
 }
 
-export function getScrollSpeed(state: PowerUpState): number {
-  return PHYSICS.worldScrollSpeed * state.scrollMultiplier;
+/** Scroll que parte lento y sube progresivamente con el tiempo de partida. */
+export function getScrollSpeed(state: PowerUpState, runTime: number): number {
+  const ramp = clamp(runTime / PHYSICS.worldScrollRampSeconds, 0, 1);
+  const eased = Math.sqrt(ramp);
+  const base = lerp(
+    PHYSICS.worldScrollSpeedMin,
+    PHYSICS.worldScrollSpeedMax,
+    eased,
+  );
+  return base * state.scrollMultiplier;
 }
 
 export function getMaxForwardSpeed(state: PowerUpState): number {
@@ -46,13 +55,13 @@ export function applyPowerUp(
     case "grow": {
       if (!state.growActive) {
         state.growActive = true;
-        player.baseScale = PLAYER.growScale;
-        player.scale = vec2(PLAYER.growScale);
+        player.baseScale = CHARACTER_SCALE * PLAYER.growScale;
+        player.scale = vec2(player.baseScale);
       }
       wait(POWERUP.growDuration, () => {
         state.growActive = false;
-        player.baseScale = 1;
-        player.scale = vec2(1);
+        player.baseScale = CHARACTER_SCALE;
+        player.scale = vec2(CHARACTER_SCALE);
         onHudUpdate();
       });
       break;

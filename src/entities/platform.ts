@@ -1,7 +1,13 @@
 import type { PlatformDef } from "../levels/level01";
 import { COLORS } from "../config";
 
-export function spawnPlatform(def: PlatformDef) {
+type StreamOpts = { chunkId: number };
+
+export function spawnPlatform(def: PlatformDef, stream?: StreamOpts) {
+  const streamComp = stream
+    ? (["stream-object", { chunkId: stream.chunkId }] as const)
+    : [];
+
   add([
     pos(def.x, def.surfaceY),
     rect(def.w, 8),
@@ -10,6 +16,7 @@ export function spawnPlatform(def: PlatformDef) {
     outline(2, rgb(...COLORS.platformOutline)),
     z(2),
     "scrollable",
+    ...streamComp,
   ]);
 
   const base = [
@@ -23,30 +30,11 @@ export function spawnPlatform(def: PlatformDef) {
     z(1),
     "platform",
     "scrollable",
+    ...streamComp,
   ] as const;
 
   if (def.destructible) {
     return add([...base, "destructible", { platformDef: def }]);
   }
   return add([...base, { platformDef: def }]);
-}
-
-export function spawnBackgroundSilhouettes() {
-  const silhouettes = [
-    { x: 600, top: 90, w: 90, h: 200 },
-    { x: 1100, top: 60, w: 120, h: 240 },
-    { x: 1750, top: 100, w: 100, h: 190 },
-  ];
-
-  for (const s of silhouettes) {
-    add([
-      pos(s.x, s.top),
-      rect(s.w, s.h),
-      anchor("topleft"),
-      color(...COLORS.buildingDark),
-      opacity(0.4),
-      z(0),
-      "scrollable",
-    ]);
-  }
 }

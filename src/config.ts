@@ -1,18 +1,28 @@
+import { GAME_CANVAS } from "./assets/sceneFrames";
+
 export const GAME = {
-  width: 800,
-  height: 450,
-  worldWidth: 2600,
-  /** Y del suelo invisible (debajo del último tejado). */
-  floorY: 400,
+  width: GAME_CANVAS.w,
+  height: GAME_CANVAS.h,
+  /** Mundo sin límite horizontal; la cámara no hace clamp derecho. */
+  infiniteWorld: true,
+  /** Y (pies) por debajo del cual se considera caída al vacío. */
+  deathY: GAME_CANVAS.h - 14,
 } as const;
 
 export const PHYSICS = {
-  gravity: 1800,
-  jumpForce: 720,
-  maxForwardSpeed: 220,
-  maxBackwardSpeed: 180,
-  worldScrollSpeed: 30,
-  worldScrollSpeedBoost: 1.5,
+  gravity: 2100,
+  jumpForce: 820,
+  maxForwardSpeed: 380,
+  maxBackwardSpeed: 320,
+  /** Control horizontal en el aire (0–1). */
+  airControl: 0.92,
+  /** Velocidad inicial del scroll automático (px/s). */
+  worldScrollSpeedMin: 62,
+  /** Velocidad máxima del scroll tras la rampa (px/s). */
+  worldScrollSpeedMax: 185,
+  /** Segundos para acercarse a la velocidad máxima. */
+  worldScrollRampSeconds: 38,
+  worldScrollSpeedBoost: 1.8,
 } as const;
 
 export const CAMERA = {
