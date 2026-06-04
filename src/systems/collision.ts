@@ -24,7 +24,7 @@ export function setupCollisions(
     applyPowerUp(type, player, state, onHudUpdate);
   });
 
-  player.onCollide("destructible", (platform) => {
+  player.onCollide("destructible", (platform: GameObj) => {
     if (!player.canDestroy) return;
     destroy(platform);
   });

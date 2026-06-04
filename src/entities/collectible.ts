@@ -1,14 +1,13 @@
 import type { CoinDef, PowerUpDef } from "../levels/level01";
+import { getScrollMarker } from "../systems/worldScroll";
 import {
   COLLECTIBLE_SPRITES,
   coinScale,
   powerUpScale,
 } from "../assets/collectibleSprites";
 
-/** Mismo tamaño de hitbox que el rombo del prototipo (POWERUP_SIZE = 24). */
 const POWERUP_HIT_SIZE = 48;
 
-/** Hitbox en px de mundo; Kaboom escala el area con el sprite. */
 function worldHitRect(worldSize: number, objectScale: number) {
   const local = worldSize / objectScale;
   const half = local / 2;
@@ -23,9 +22,11 @@ export function spawnCoin(def: CoinDef, chunkId?: number) {
 
   const scaleFactor = coinScale(def.r);
 
+  const worldX = getScrollMarker() + def.x;
+
   return add([
     sprite(COLLECTIBLE_SPRITES.coin),
-    pos(def.x, def.y),
+    pos(worldX, def.y),
     scale(scaleFactor),
     area({ shape: worldHitRect(def.r * 2, scaleFactor) }),
     anchor("center"),
@@ -45,9 +46,11 @@ export function spawnPowerUp(def: PowerUpDef, chunkId?: number) {
 
   const scaleFactor = powerUpScale();
 
+  const worldX = getScrollMarker() + def.x;
+
   return add([
     sprite(COLLECTIBLE_SPRITES.potion),
-    pos(def.x, def.y),
+    pos(worldX, def.y),
     scale(scaleFactor),
     area({ shape: worldHitRect(POWERUP_HIT_SIZE, scaleFactor) }),
     anchor("center"),

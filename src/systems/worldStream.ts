@@ -3,6 +3,7 @@ import { mapCycleWidth } from "../assets/sceneFrames";
 import { mapChunk } from "../levels/mapChunk";
 import { spawnPlatform } from "../entities/platform";
 import { spawnCoin, spawnPowerUp } from "../entities/collectible";
+import { getScrollMarker } from "./worldScroll";
 
 const CHUNK_WIDTH = mapCycleWidth();
 const LOOK_AHEAD = GAME.width * 2.2;
@@ -29,11 +30,11 @@ function spawnChunk(chunkId: number, offsetX: number) {
 }
 
 function pruneChunks() {
-  const minX = camPos().x - LOOK_BEHIND;
+  const minX = getScrollMarker() - LOOK_BEHIND;
 
   for (const [chunkId, startX] of activeChunks) {
     if (startX + CHUNK_WIDTH < minX) {
-      for (const obj of get("stream-object")) {
+      for (const obj of get("scrollable")) {
         if (obj.chunkId === chunkId) destroy(obj);
       }
       activeChunks.delete(chunkId);
@@ -42,7 +43,7 @@ function pruneChunks() {
 }
 
 function ensureChunksAhead() {
-  const needUntil = camPos().x + LOOK_AHEAD;
+  const needUntil = getScrollMarker() + LOOK_AHEAD;
 
   while (nextChunkX < needUntil) {
     spawnChunk(chunkSerial, nextChunkX);
@@ -52,7 +53,7 @@ function ensureChunksAhead() {
 }
 
 export function setupInfiniteWorldStream() {
-  nextChunkX = 0;
+  nextChunkX = CHUNK_WIDTH;
   chunkSerial = 0;
   activeChunks.clear();
 

@@ -17,6 +17,9 @@ export type PlayerObj = GameObj<
     SpriteComp & {
       baseScale: number;
       canDestroy: boolean;
+      physicsImmune: boolean;
+      coyoteTimer: number;
+      jumpBufferTimer: number;
     }
 >;
 
@@ -27,18 +30,46 @@ export function spawnPlayer(surfaceY: number): PlayerObj {
     anchor("botleft"),
     scale(CHARACTER_SCALE),
     area({
-      shape: new Rect(vec2(6, -PLAYER.height), PLAYER.width - 12, PLAYER.height),
+      shape: new Rect(vec2(8, -PLAYER.height + 4), PLAYER.width - 16, PLAYER.height - 4),
     }),
-    body({ stickToPlatform: true, maxVelocity: 720 }),
+    body({
+      stickToPlatform: true,
+      maxVelocity: PHYSICS.maxBodyVelocity,
+    }),
     z(20),
     "player",
+    "scrollable",
     {
       baseScale: CHARACTER_SCALE,
       canDestroy: false,
+      physicsImmune: false,
+      coyoteTimer: PHYSICS.coyoteTime,
+      jumpBufferTimer: 0,
     },
   ]) as PlayerObj;
 
   return p;
+}
+
+export function setupPlayerJump(player: PlayerObj) {
+  onUpdate(() => {
+    if (player.isGrounded()) {
+      player.coyoteTimer = PHYSICS.coyoteTime;
+      if (player.jumpBufferTimer > 0) {
+        performJump(player);
+      }
+    } else {
+      player.coyoteTimer = Math.max(0, player.coyoteTimer - dt());
+    }
+
+    player.jumpBufferTimer = Math.max(0, player.jumpBufferTimer - dt());
+  });
+}
+
+function performJump(player: PlayerObj) {
+  player.jump(PHYSICS.jumpForce);
+  player.coyoteTimer = 0;
+  player.jumpBufferTimer = 0;
 }
 
 export function handlePlayerInput(player: PlayerObj, maxForward: number) {
@@ -70,7 +101,10 @@ export function updatePlayerVisual(player: PlayerObj) {
 }
 
 export function tryJump(player: PlayerObj) {
-  if (player.isGrounded()) {
-    player.jump(PHYSICS.jumpForce);
+  if (player.physicsImmune) return;
+  if (player.coyoteTimer > 0) {
+    performJump(player);
+    return;
   }
+  player.jumpBufferTimer = PHYSICS.jumpBuffer;
 }

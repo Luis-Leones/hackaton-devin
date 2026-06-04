@@ -10,19 +10,23 @@ export const GAME = {
 } as const;
 
 export const PHYSICS = {
-  gravity: 2100,
-  jumpForce: 820,
+  gravity: 1980,
+  jumpForce: 760,
+  /** Velocidad máxima del cuerpo (salto y caída). */
+  maxBodyVelocity: 920,
   maxForwardSpeed: 380,
   maxBackwardSpeed: 320,
   /** Control horizontal en el aire (0–1). */
-  airControl: 0.92,
-  /** Velocidad inicial del scroll automático (px/s). */
-  worldScrollSpeedMin: 62,
-  /** Velocidad máxima del scroll tras la rampa (px/s). */
-  worldScrollSpeedMax: 185,
-  /** Segundos para acercarse a la velocidad máxima. */
-  worldScrollRampSeconds: 38,
-  worldScrollSpeedBoost: 1.8,
+  airControl: 0.9,
+  /** Segundos tras dejar el suelo en los que aún se puede saltar. */
+  coyoteTime: 0.11,
+  /** Segundos de anticipación del botón de salto al aterrizar. */
+  jumpBuffer: 0.13,
+  /** Grosor del collider de superficie (tejado). */
+  surfaceColliderHeight: 12,
+  /** Velocidad fija del desplazamiento automático (px/s). */
+  worldScrollSpeed: 118,
+  worldScrollSpeedBoost: 1.55,
 } as const;
 
 export const CAMERA = {
@@ -35,7 +39,7 @@ export const PLAYER = {
   height: 56,
   startX: 110,
   /** Superficie del primer tejado (pies del jugador). */
-  startSurfaceY: 220,
+  startSurfaceY: 308,
   color: [230, 70, 70] as [number, number, number],
   growScale: 1.45,
 } as const;
@@ -47,9 +51,9 @@ export const POWERUP = {
 } as const;
 
 export const COLORS = {
-  building: [70, 78, 95] as [number, number, number],
+  building: [88, 98, 118] as [number, number, number],
   buildingDark: [50, 56, 68] as [number, number, number],
-  roof: [145, 155, 170] as [number, number, number],
+  roof: [158, 168, 182] as [number, number, number],
   platformOutline: [25, 28, 38] as [number, number, number],
   coin: [255, 210, 40] as [number, number, number],
   speed: [255, 210, 55] as [number, number, number],

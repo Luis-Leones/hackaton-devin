@@ -17,10 +17,10 @@ export function registerMenuScene() {
     ]);
 
     add([
-      text("Proto Runner", { size: 36 }),
+      text("Ninja City Chase", { size: 36 }),
       pos(center().x, 52),
       anchor("center"),
-      color(...COLORS.hud),
+      color(...COLORS.coin),
       fixed(),
       z(100),
     ]);
@@ -29,7 +29,7 @@ export function registerMenuScene() {
       text("Pulsa Espacio o Enter para jugar", { size: 18 }),
       pos(center().x, GAME.height - 56),
       anchor("center"),
-      color(30, 35, 48),
+      color(...COLORS.coin),
       fixed(),
       z(100),
     ]);

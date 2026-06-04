@@ -1,5 +1,6 @@
 import type { PlatformDef } from "../levels/level01";
 import { COLORS } from "../config";
+import { getScrollMarker } from "../systems/worldScroll";
 
 type StreamOpts = { chunkId: number };
 
@@ -8,33 +9,37 @@ export function spawnPlatform(def: PlatformDef, stream?: StreamOpts) {
     ? (["stream-object", { chunkId: stream.chunkId }] as const)
     : [];
 
+  const worldX = getScrollMarker() + def.x;
+
   add([
-    pos(def.x, def.surfaceY),
+    pos(worldX, def.surfaceY),
     rect(def.w, 8),
     anchor("topleft"),
-    color(...COLORS.roof),
+    color(rgb(...COLORS.roof)),
     outline(2, rgb(...COLORS.platformOutline)),
-    z(2),
+    z(15),
+    "platform-roof",
     "scrollable",
     ...streamComp,
   ]);
 
-  const base = [
-    pos(def.x, def.surfaceY),
+  const tags = [
+    pos(worldX, def.surfaceY),
     rect(def.w, def.h),
     anchor("topleft"),
-    color(...COLORS.building),
+    color(rgb(...COLORS.building)),
     outline(3, rgb(...COLORS.platformOutline)),
     area(),
     body({ isStatic: true }),
-    z(1),
+    z(14),
     "platform",
     "scrollable",
+    { platformDef: def },
     ...streamComp,
   ] as const;
 
   if (def.destructible) {
-    return add([...base, "destructible", { platformDef: def }]);
+    return add([...tags, "destructible"]);
   }
-  return add([...base, { platformDef: def }]);
+  return add([...tags]);
 }
