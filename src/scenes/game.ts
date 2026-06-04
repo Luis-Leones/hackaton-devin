@@ -8,9 +8,7 @@ import {
   handlePlayerInput,
   tryJump,
 } from "../entities/player";
-import { spawnPlatform } from "../entities/platform";
-import { canvasPlatforms } from "../levels/canvasPlatforms";
-import { setupFallBehindCheck } from "../systems/camera";
+import { setupAutoScrollCamera } from "../systems/camera";
 import { setupCollisions } from "../systems/collision";
 import {
   createPowerUpState,
@@ -18,12 +16,10 @@ import {
   getMaxForwardSpeed,
   powerUpLabel,
 } from "../systems/powerups";
-import { resetScrollMarker, trackScroll } from "../systems/worldScroll";
 
 function scrollWorld(speed: number) {
-  const dx = speed * dt();
   for (const obj of get("scrollable")) {
-    obj.pos.x -= dx;
+    obj.pos.x -= speed;
   }
 }
 
@@ -32,22 +28,8 @@ export function registerGameScene() {
     setGravity(PHYSICS.gravity);
     setBackground(...COLORS.sky);
     camPos(vec2(0, 0));
-    resetScrollMarker();
 
     setupInfiniteMapBackground();
-
-    add([
-      pos(0, 280),
-      rect(GAME.width, 50),
-      anchor("topleft"),
-      color(rgb(200, 60, 60)),
-      z(40),
-    ]);
-
-    for (const def of canvasPlatforms) {
-      spawnPlatform(def);
-    }
-
     setupInfiniteWorldStream();
 
     add([
@@ -75,6 +57,11 @@ export function registerGameScene() {
     const player = spawnPlayer(PLAYER.startSurfaceY);
     setupPlayerJump(player);
 
+    onUpdate(() => {
+      if (gameOver) return;
+      scrollWorld(getScrollSpeed(powerState) * dt());
+    });
+
     function endRun(message: string) {
       if (gameOver) return;
       gameOver = true;
@@ -83,14 +70,13 @@ export function registerGameScene() {
     }
 
     add([
-      rect(GAME.width + 400, 80),
-      pos(-200, GAME.deathY - 20),
+      rect(50000, 120),
+      pos(-10000, GAME.deathY - 30),
       anchor("topleft"),
       area(),
       body({ isStatic: true }),
       opacity(0),
       "killzone",
-      "scrollable",
     ]);
 
     const hudCoins = add([
@@ -133,10 +119,7 @@ export function registerGameScene() {
       hudPower.text = powerUpLabel(powerState);
     }
 
-    setupFallBehindCheck(player, () => {
-      if (gameOver || runTime < 1.5) return;
-      endRun("Te quedaste atrás — pulsa R");
-    });
+    camPos(vec2(Math.max(0, player.pos.x - GAME.width * 0.32), 0));
 
     setupCollisions(player, powerState, () => {
       coinCount++;
@@ -161,32 +144,31 @@ export function registerGameScene() {
 
     player.onFallOff(() => {
       if (gameOver || player.physicsImmune) return;
-      wait(0.28, () => {
+      wait(PHYSICS.fallVoidDelay, () => {
         if (gameOver || player.physicsImmune || player.isGrounded()) return;
-        if (player.pos.y >= GAME.deathY - 56) {
-          endRun("Caíste al vacío — pulsa R");
-        }
+        endRun("Caíste al vacío — pulsa R");
       });
     });
 
     onUpdate(() => {
       if (gameOver) return;
-
       runTime += dt();
-
-      const scroll = getScrollSpeed(powerState);
-      if (runTime > 0.4) {
-        trackScroll(scroll);
-        scrollWorld(scroll);
-      }
-
       handlePlayerInput(player, getMaxForwardSpeed(powerState));
 
-      if (player.physicsImmune) {
-        player.vel.y = 0;
-      } else if (!player.isGrounded() && player.pos.y >= GAME.deathY) {
+      if (player.physicsImmune) return;
+
+      if (!player.isGrounded() && player.pos.y >= GAME.deathY - 8) {
         endRun("Caíste al vacío — pulsa R");
       }
     });
+
+    setupAutoScrollCamera(
+      player,
+      () => getScrollSpeed(powerState),
+      () => {
+        if (gameOver || runTime < 3) return;
+        endRun("Te quedaste atrás — pulsa R");
+      },
+    );
   });
 }

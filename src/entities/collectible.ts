@@ -1,5 +1,4 @@
 import type { CoinDef, PowerUpDef } from "../levels/level01";
-import { getScrollMarker } from "../systems/worldScroll";
 import {
   COLLECTIBLE_SPRITES,
   coinScale,
@@ -22,11 +21,9 @@ export function spawnCoin(def: CoinDef, chunkId?: number) {
 
   const scaleFactor = coinScale(def.r);
 
-  const worldX = getScrollMarker() + def.x;
-
   return add([
     sprite(COLLECTIBLE_SPRITES.coin),
-    pos(worldX, def.y),
+    pos(def.x, def.y),
     scale(scaleFactor),
     area({ shape: worldHitRect(def.r * 2, scaleFactor) }),
     anchor("center"),
@@ -46,11 +43,9 @@ export function spawnPowerUp(def: PowerUpDef, chunkId?: number) {
 
   const scaleFactor = powerUpScale();
 
-  const worldX = getScrollMarker() + def.x;
-
   return add([
     sprite(COLLECTIBLE_SPRITES.potion),
-    pos(worldX, def.y),
+    pos(def.x, def.y),
     scale(scaleFactor),
     area({ shape: worldHitRect(POWERUP_HIT_SIZE, scaleFactor) }),
     anchor("center"),

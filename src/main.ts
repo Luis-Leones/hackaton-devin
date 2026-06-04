@@ -4,6 +4,7 @@ import { loadSceneFrameSprites } from "./assets/sceneFrames";
 import { loadCharacterSprites } from "./assets/characterSprites";
 import { loadCollectibleSprites } from "./assets/collectibleSprites";
 import { loadGameAudio } from "./assets/audio";
+import { loadPlatformSprites } from "./assets/platformSprites";
 import { registerMenuScene } from "./scenes/menu";
 import { registerGameScene } from "./scenes/game";
 
@@ -26,9 +27,12 @@ kaboom({
 loadSceneFrameSprites();
 loadCharacterSprites();
 loadCollectibleSprites();
+loadPlatformSprites();
 loadGameAudio();
 
 registerMenuScene();
 registerGameScene();
 
-onLoad(() => go("menu"));
+onLoad(() => {
+  go("menu");
+});

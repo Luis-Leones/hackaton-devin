@@ -1,14 +1,24 @@
-import type { PlayerObj } from "../entities/player";
+import type { GameObj } from "kaboom";
+import { CAMERA, GAME } from "../config";
 
-/** Sin mover la cámara: el scroll desplaza los objetos. */
-export function setupFallBehindCheck(
-  player: PlayerObj,
+export function setupAutoScrollCamera(
+  player: GameObj,
+  getScrollSpeed: () => number,
   onFallBehind: () => void,
 ) {
-  const minScreenX = 70;
+  const offsetX = GAME.width * CAMERA.playerScreenRatio;
+  const fallBehindMargin = 130;
 
   onUpdate(() => {
-    if (player.pos.x < minScreenX) {
+    const scroll = getScrollSpeed() * dt();
+    const autoCamX = camPos().x + scroll;
+    const followX = player.pos.x - offsetX;
+
+    const targetX = Math.max(0, autoCamX, followX);
+
+    camPos(vec2(targetX, 0));
+
+    if (player.pos.x < camPos().x - fallBehindMargin) {
       onFallBehind();
     }
   });

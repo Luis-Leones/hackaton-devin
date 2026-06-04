@@ -7,7 +7,7 @@ import type {
   SpriteComp,
 } from "kaboom";
 import { PHYSICS, PLAYER } from "../config";
-import { CHARACTER_SCALE, CHARACTER_SPRITE } from "../assets/characterSprites";
+import { CHARACTER_SPRITE } from "../assets/characterSprites";
 
 export type PlayerObj = GameObj<
   PosComp &
@@ -25,22 +25,25 @@ export type PlayerObj = GameObj<
 
 export function spawnPlayer(surfaceY: number): PlayerObj {
   const p = add([
-    sprite(CHARACTER_SPRITE, { anim: "idle" }),
+    sprite(CHARACTER_SPRITE, {
+      anim: "idle",
+      width: PLAYER.width,
+      height: PLAYER.height,
+    }),
     pos(PLAYER.startX, surfaceY),
     anchor("botleft"),
-    scale(CHARACTER_SCALE),
+    scale(1),
     area({
-      shape: new Rect(vec2(8, -PLAYER.height + 4), PLAYER.width - 16, PLAYER.height - 4),
+      shape: new Rect(vec2(6, -PLAYER.height), PLAYER.width - 12, PLAYER.height),
     }),
     body({
       stickToPlatform: true,
       maxVelocity: PHYSICS.maxBodyVelocity,
     }),
-    z(20),
+    z(25),
     "player",
-    "scrollable",
     {
-      baseScale: CHARACTER_SCALE,
+      baseScale: 1,
       canDestroy: false,
       physicsImmune: false,
       coyoteTimer: PHYSICS.coyoteTime,

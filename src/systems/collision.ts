@@ -9,6 +9,13 @@ export function setupCollisions(
   onCoinCollect: () => void,
   onHudUpdate: () => void,
 ) {
+  player.onBeforePhysicsResolve((col) => {
+    if (!col.target.is("platform")) return;
+    if (col.isLeft() || col.isRight()) {
+      col.preventResolution();
+    }
+  });
+
   player.onCollide("coin", (coin: GameObj) => {
     if (coin.collected) return;
     coin.collected = true;

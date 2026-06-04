@@ -3,6 +3,7 @@ import {
   SCENE_SPRITES,
   SCENE_FRAME_SIZE,
   getMapFrameLayouts,
+  MAP_CANVAS_HEIGHT,
   type MapFrameLayout,
 } from "../assets/sceneFrames";
 
@@ -26,19 +27,29 @@ function spawnMapBgSegment(layout: MapFrameLayout, worldX: number) {
       width: layout.width,
       height: layout.height,
     }),
-    pos(worldX, GAME.height),
+    pos(worldX, MAP_CANVAS_HEIGHT),
     anchor("botleft"),
     z(-25),
     "map-bg",
-    "scrollable",
-    { segWidth: layout.width },
+    {
+      worldX,
+      segWidth: layout.width,
+    },
   ]);
 }
 
-function mapBgRightEdge(): number {
+function syncMapBgToCamera() {
+  const camX = camPos().x;
+
+  for (const seg of get("map-bg")) {
+    seg.pos.x = seg.worldX - camX;
+  }
+}
+
+function mapBgWorldRightEdge(): number {
   let edge = 0;
   for (const seg of get("map-bg")) {
-    edge = Math.max(edge, seg.pos.x + seg.segWidth);
+    edge = Math.max(edge, seg.worldX + seg.segWidth);
   }
   return edge;
 }
@@ -52,10 +63,10 @@ function recycleMapBackground() {
 
   if (offscreen.length === 0) return;
 
-  let rightEdge = mapBgRightEdge();
+  let rightEdge = mapBgWorldRightEdge();
 
   for (const seg of offscreen) {
-    seg.pos.x = rightEdge;
+    seg.worldX = rightEdge;
     rightEdge += seg.segWidth;
   }
 }
@@ -75,8 +86,11 @@ function buildMapBackground() {
 export function setupInfiniteMapBackground() {
   destroyAll("map-bg");
   buildMapBackground();
+  syncMapBgToCamera();
 
   onUpdate(() => {
+    syncMapBgToCamera();
     recycleMapBackground();
+    syncMapBgToCamera();
   });
 }

@@ -1,6 +1,5 @@
 import type { PowerUpType } from "../levels/level01";
 import { PHYSICS, PLAYER, POWERUP } from "../config";
-import { CHARACTER_SCALE } from "../assets/characterSprites";
 import type { PlayerObj } from "../entities/player";
 
 export type PowerUpState = {
@@ -31,8 +30,8 @@ function deactivatePotionMode(player: PlayerObj, state: PowerUpState, onHudUpdat
   state.potionActive = false;
   state.scrollMultiplier = 1;
   state.forwardMultiplier = 1;
-  player.baseScale = CHARACTER_SCALE;
-  player.scale = vec2(CHARACTER_SCALE);
+  player.baseScale = 1;
+  player.scale = vec2(1);
   player.canDestroy = false;
   player.physicsImmune = false;
   player.gravityScale = 1;
@@ -53,8 +52,8 @@ function activatePotionMode(
   }
 
   state.potionActive = true;
-  player.baseScale = CHARACTER_SCALE * PLAYER.growScale;
-  player.scale = vec2(player.baseScale);
+  player.baseScale = PLAYER.growScale;
+  player.scale = vec2(PLAYER.growScale);
   player.canDestroy = true;
   player.physicsImmune = true;
   player.gravityScale = 0;

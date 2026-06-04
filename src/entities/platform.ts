@@ -1,6 +1,6 @@
 import type { PlatformDef } from "../levels/level01";
-import { COLORS } from "../config";
-import { getScrollMarker } from "../systems/worldScroll";
+import { PHYSICS } from "../config";
+import { PLATFORM_SPRITES } from "../assets/platformSprites";
 
 type StreamOpts = { chunkId: number };
 
@@ -9,37 +9,41 @@ export function spawnPlatform(def: PlatformDef, stream?: StreamOpts) {
     ? (["stream-object", { chunkId: stream.chunkId }] as const)
     : [];
 
-  const worldX = getScrollMarker() + def.x;
+  add([
+    pos(def.x, def.surfaceY),
+    sprite(PLATFORM_SPRITES.building, { width: def.w, height: def.h }),
+    anchor("topleft"),
+    z(10),
+    "platform-building",
+    "scrollable",
+    ...streamComp,
+  ]);
 
   add([
-    pos(worldX, def.surfaceY),
-    rect(def.w, 8),
+    pos(def.x, def.surfaceY),
+    sprite(PLATFORM_SPRITES.roof, { width: def.w, height: 8 }),
     anchor("topleft"),
-    color(rgb(...COLORS.roof)),
-    outline(2, rgb(...COLORS.platformOutline)),
-    z(15),
+    z(12),
     "platform-roof",
     "scrollable",
     ...streamComp,
   ]);
 
-  const tags = [
-    pos(worldX, def.surfaceY),
-    rect(def.w, def.h),
+  const surface = [
+    pos(def.x, def.surfaceY),
+    rect(def.w, PHYSICS.surfaceColliderHeight),
     anchor("topleft"),
-    color(rgb(...COLORS.building)),
-    outline(3, rgb(...COLORS.platformOutline)),
     area(),
     body({ isStatic: true }),
-    z(14),
+    opacity(0),
+    z(11),
     "platform",
     "scrollable",
-    { platformDef: def },
     ...streamComp,
   ] as const;
 
   if (def.destructible) {
-    return add([...tags, "destructible"]);
+    return add([...surface, "destructible", { platformDef: def }]);
   }
-  return add([...tags]);
+  return add([...surface, { platformDef: def }]);
 }

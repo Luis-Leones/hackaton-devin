@@ -24,6 +24,8 @@ export const PHYSICS = {
   jumpBuffer: 0.13,
   /** Grosor del collider de superficie (tejado). */
   surfaceColliderHeight: 12,
+  /** Tras salir de una plataforma, segundos antes de contar caída al vacío. */
+  fallVoidDelay: 0.22,
   /** Velocidad fija del desplazamiento automático (px/s). */
   worldScrollSpeed: 118,
   worldScrollSpeedBoost: 1.55,
@@ -39,7 +41,7 @@ export const PLAYER = {
   height: 56,
   startX: 110,
   /** Superficie del primer tejado (pies del jugador). */
-  startSurfaceY: 308,
+  startSurfaceY: 165,
   color: [230, 70, 70] as [number, number, number],
   growScale: 1.45,
 } as const;
